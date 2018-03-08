@@ -21,7 +21,7 @@ ModuleVersion = '0.0.1'
 GUID = '81878b41-809d-40c7-8bdd-8e13ab84b966'
 
 # Author of this module
-Author = 'luism'
+Author = 'lmmarsano'
 
 # Description of the functionality provided by this module
 Description = 'Extended PKI CmdLets'
@@ -45,7 +45,7 @@ Description = 'Extended PKI CmdLets'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('pki')
+# RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -89,12 +89,7 @@ PrivateData = @{
 	PSData = @{
 
 		# Tags applied to this module. These help with module discovery in online galleries.
-		Tags = -split @'
-PKI
-certificates
-security
-powershell
-'@
+		Tags = 'PKI','certificates','security','powershell'
 
 		# A URL to the license for this module.
 		LicenseUri = 'https://www.gnu.org/licenses/gpl.html'
@@ -107,7 +102,7 @@ powershell
 
 		# ReleaseNotes of this module
 		# ReleaseNotes = ''
-
+		ExternalModuleDependencies = @('pki')
 	} # End of PSData hashtable
 
 } # End of PrivateData hashtable

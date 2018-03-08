@@ -198,7 +198,7 @@ function New-SelfSignedCertificate {
 			     | % { '{0}={1}' -f $token,$_ }
 			[void](@($PSBoundParameters.GetEnumerator() | % { $_.key } | ? { $_.StartsWith('SAN') }) `
 			      | % { $PSBoundParameters.Remove($_) })
-			if ($SAN -ne $null) {
+			if ($null -ne $SAN) {
 				if (!$PSBoundParameters.ContainsKey('TextExtension')) {
 					$PSBoundParameters.TextExtension = [string[]]@()
 				}
