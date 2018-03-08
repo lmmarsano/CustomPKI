@@ -45,7 +45,7 @@ Description = 'Extended PKI CmdLets'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @('pki')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -86,24 +86,29 @@ FunctionsToExport = 'New-EKU','New-SelfSignedCertificate'
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
 
-    PSData = @{
+	PSData = @{
 
-        # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+		# Tags applied to this module. These help with module discovery in online galleries.
+		Tags = -split @'
+PKI
+certificates
+security
+powershell
+'@
 
-        # A URL to the license for this module.
-        # LicenseUri = ''
+		# A URL to the license for this module.
+		LicenseUri = 'https://www.gnu.org/licenses/gpl.html'
 
-        # A URL to the main website for this project.
-        # ProjectUri = ''
+		# A URL to the main website for this project.
+		ProjectUri = 'https://github.com/lmmarsano/CustomPKI/'
 
-        # A URL to an icon representing this module.
-        # IconUri = ''
+		# A URL to an icon representing this module.
+		# IconUri = ''
 
-        # ReleaseNotes of this module
-        # ReleaseNotes = ''
+		# ReleaseNotes of this module
+		# ReleaseNotes = ''
 
-    } # End of PSData hashtable
+	} # End of PSData hashtable
 
 } # End of PrivateData hashtable
 
