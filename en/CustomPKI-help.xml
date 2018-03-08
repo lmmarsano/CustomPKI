@@ -153,7 +153,8 @@ The default value, None, indicates that this cmdlet uses the default value from 
 -- Server Authentication
 -- Secure Email
 -- Code Signing
--- Timestamp Signing</maml:para>
+-- Timestamp Signing
+-- Document Encryption</maml:para>
 					</maml:description>
 					<command:parameterValue required="false" variableLength="true">String[]</command:parameterValue>
 				</command:parameter>
@@ -736,7 +737,8 @@ The default value, None, indicates that this cmdlet uses the default value from 
 -- Server Authentication
 -- Secure Email
 -- Code Signing
--- Timestamp Signing</maml:para>
+-- Timestamp Signing
+-- Document Encryption</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="true">System.String[]</command:parameterValue>
 				<dev:type>

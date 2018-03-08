@@ -162,7 +162,7 @@ function New-SelfSignedCertificate {
 		[string[]]
 		${SANGUID},
 
-		[ValidateSet('Any Purpose', 'Client Authentication', 'Server Authentication', 'Secure Email', 'Code Signing', 'Timestamp Signing')]
+		[ValidateSet('Any Purpose', 'Client Authentication', 'Server Authentication', 'Secure Email', 'Code Signing', 'Timestamp Signing', 'Document Encryption')]
 		[string[]]
 		${EKU},
 
