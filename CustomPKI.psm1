@@ -13,10 +13,17 @@ function New-EKU {
 	Server Authentication
 	Secure Email
 	Code Signing
-	Timestamp Signing
-	'@ -split @'
-
-	'@) | New-EKU -Critical
+	Time Stamping
+	Document Encryption
+	IP Security End System
+	IP security tunnel termination
+	IP Security User
+	IP Security IKE Intermediate
+	All application policies
+	Microsoft Trust List Signing
+	Qualified Subordination
+	Key Recovery
+	'@ -split "`n") | New-EKU -Critical
 	Creates a critical EKU extension containing all the named OIDs.
 #>
 	[OutputType([System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension])]
@@ -24,8 +31,8 @@ function New-EKU {
 	param (
 		# OID Friendly Names
 		[Parameter(ValueFromPipeline=$true)]
-		[string]
-		$InputObject,
+		[string[]]
+		$FriendlyName,
 
 		# Critical Extension Flag
 		[switch]
@@ -37,8 +44,11 @@ function New-EKU {
 	}
 
 	process {
-		($oid = [System.Security.Cryptography.Oid]::new()).FriendlyName = $_
-		[void]$oidCollection.Add($oid)
+		$FriendlyName | % {
+			($oid = [System.Security.Cryptography.Oid]::new()).FriendlyName = $_
+			[void]$oidCollection.Add($oid)
+			Write-Verbose -Message ('Added OID {0} ({1})' -f $oid.Value,$oid.FriendlyName)
+		}
 	}
 
 	end {
@@ -162,7 +172,7 @@ function New-SelfSignedCertificate {
 		[string[]]
 		${SANGUID},
 
-		[ValidateSet('Any Purpose', 'Client Authentication', 'Server Authentication', 'Secure Email', 'Code Signing', 'Timestamp Signing', 'Document Encryption')]
+		[ValidateSet('Any Purpose', 'Client Authentication', 'Server Authentication', 'Secure Email', 'Code Signing', 'Time Stamping', 'Document Encryption', 'IP Security End System', 'IP security tunnel termination', 'IP Security User', 'IP Security IKE Intermediate', 'All application policies', 'Microsoft Trust List Signing', 'Qualified Subordination', 'Key Recovery')]
 		[string[]]
 		${EKU},
 
@@ -209,7 +219,7 @@ function New-SelfSignedCertificate {
 				if (!$PSBoundParameters.ContainsKey('Extension')) {
 					$PSBoundParameters.Extension = [System.Security.Cryptography.X509Certificates.X509Extension[]]@()
 				}
-				$PSBoundParameters.Extension += ,($EKU | New-EKU)
+				$PSBoundParameters.Extension += ,(New-EKU -FriendlyName $EKU)
 				[void]$PSBoundParameters.Remove('EKU')
 				Write-Information -MessageData ('Using Extension{0}' -f ($PSBoundParameters.Extension | Out-String))
 			}
