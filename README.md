@@ -13,7 +13,7 @@ Help -Name CustomPKI\New-SelfSignedCertificate -Full
 # Installation
 
 ```PowerShell
-Install-Module -Name CustomPKI -Scope CurrentUser
+Install-Module -Name CustomPKI -Scope CurrentUser -AllowClobber
 ```
 or your preferred *scope*.
 

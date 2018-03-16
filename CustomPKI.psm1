@@ -201,13 +201,15 @@ function New-SelfSignedCertificate {
 	begin
 	{
 		try {
-			$SAN = $PSBoundParameters.GetEnumerator() `
-			     | ? { $_.key.StartsWith('SAN') } `
-			     | % { $token = $_.key.Substring(3)
-			    	$_.value } `
+			# convert SAN* parameters into TextExtension
+			# sync matches into array for subsequent removal
+			# expand $_.value
+			$SAN = @($PSBoundParameters.GetEnumerator() `
+			         | ? { $_.key.StartsWith('SAN') }) `
+			     | % { [void]($PSBoundParameters.Remove($_.key))
+			           $token = $_.key.Substring(3) # 3 = 'SAN'.length
+			           $_.value } `
 			     | % { '{0}={1}' -f $token,$_ }
-			[void](@($PSBoundParameters.GetEnumerator() | % { $_.key } | ? { $_.StartsWith('SAN') }) `
-			      | % { $PSBoundParameters.Remove($_) })
 			if ($null -ne $SAN) {
 				if (!$PSBoundParameters.ContainsKey('TextExtension')) {
 					$PSBoundParameters.TextExtension = [string[]]@()
@@ -215,6 +217,7 @@ function New-SelfSignedCertificate {
 				$PSBoundParameters.TextExtension += ,('2.5.29.17={{text}}{0}' -f ($SAN -join '&'))
 				Write-Information -MessageData ('Using TextExtension {0}' -f ($PSBoundParameters.TextExtension -join ','))
 			}
+			# convert EKU into Extension
 			if ($PSBoundParameters.ContainsKey('EKU')) {
 				if (!$PSBoundParameters.ContainsKey('Extension')) {
 					$PSBoundParameters.Extension = [System.Security.Cryptography.X509Certificates.X509Extension[]]@()
