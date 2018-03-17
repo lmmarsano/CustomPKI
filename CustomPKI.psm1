@@ -201,6 +201,14 @@ function New-SelfSignedCertificate {
 	begin
 	{
 		try {
+			# transfer DnsName to SANDNS
+			if ($PSBoundParameters.ContainsKey('DnsName')) {
+				if (!$PSBoundParameters.ContainsKey('SANDNS')) {
+					$PSBoundParameters.SANDNS = [string[]]@()
+				}
+				$PSBoundParameters.SANDNS += $DnsName
+				$PSBoundParameters.Remove('DnsName')
+			}
 			# convert SAN* parameters into TextExtension
 			# sync matches into array for subsequent removal
 			# expand $_.value
@@ -214,7 +222,12 @@ function New-SelfSignedCertificate {
 				if (!$PSBoundParameters.ContainsKey('TextExtension')) {
 					$PSBoundParameters.TextExtension = [string[]]@()
 				}
-				$PSBoundParameters.TextExtension += ,('2.5.29.17={{text}}{0}' -f ($SAN -join '&'))
+				if ($PSBoundParameters.ContainsKey('Subject')) {
+					$CriticalSAN = ''
+				} else {
+					$CriticalSAN = '{critical}'
+				}
+				$PSBoundParameters.TextExtension += ,('2.5.29.17={0}{{text}}{1}' -f $CriticalSAN,($SAN -join '&'))
 				Write-Information -MessageData ('Using TextExtension {0}' -f ($PSBoundParameters.TextExtension -join ','))
 			}
 			# convert EKU into Extension

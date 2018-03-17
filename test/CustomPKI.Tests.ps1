@@ -84,6 +84,16 @@ GUID
 			Remove-Variable -Name pm
 		}
 	}
+	It 'Merges DnsName into SANDNS' {
+		Write-Information -MessageData 'Using TextExtension 2.5.29.17={critical}{text}DNS=san&DNS=dnsname' -InformationVariable expected
+		New-SelfSignedCertificate -WhatIf -DnsName dnsname -SANDNS san -InformationVariable actual
+		Compare-String -Be -ExpectedValue $expected -ActualValue $actual
+	}
+	It 'Marks SAN* Critical when Subject absent' {
+		Write-Information -MessageData 'Using TextExtension 2.5.29.17={critical}{text}DNS=domain' -InformationVariable expected
+		New-SelfSignedCertificate -WhatIf -SANDNS domain -InformationVariable actual
+		Compare-String -Be -ExpectedValue $expected -ActualValue $actual
+	}
 	It 'Merges SAN* & TextExtension' {
 		Write-Information -MessageData 'Using TextExtension 2.5.29.37={text}1.3.6.1.5.5.7.3.8,2.5.29.17={text}DNS=domain' -InformationVariable expected
 		New-SelfSignedCertificate -WhatIf -Subject Subject -SANDNS domain -TextExtension '2.5.29.37={text}1.3.6.1.5.5.7.3.8' -InformationVariable actual
