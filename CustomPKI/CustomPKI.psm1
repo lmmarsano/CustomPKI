@@ -276,7 +276,87 @@ function New-SelfSignedCertificate {
 	.ForwardHelpCategory Cmdlet
 	#>
 }
+<#
+.SYNOPSIS
+	Add a directory path to the user's PATH environment variable.
+.NOTES
+	If the path is already present, then it is moved to the beginning.
+.EXAMPLE
+	Add-PathEntry -entry ~\new-path
+	Adds the expansion of `~\new-path` to PATH.
+#>
+function Add-PathEntry {
+	[CmdletBinding()]
+	param (
+		# Directory path to add to PATH variable
+		[Parameter(Mandatory = $true)]
+		[string]
+		$entry
+	)
+	[System.Environment]::SetEnvironmentVariable(
+		'PATH',
+		( , $entry`
+			+ ( ( [System.Environment]::GetEnvironmentVariable(
+					'PATH',
+					[System.EnvironmentVariableTarget]::User
+				)`
+					-split [IO.Path]::PathSeparator`
+			)`
+				-ne $entry`
+		)`
+		)`
+			-join [IO.Path]::PathSeparator,
+		[System.EnvironmentVariableTarget]::User
+	)
+}
+<#
+.SYNOPSIS
+	Output all or selected CA certificates in a PEM stream.
+.DESCRIPTION
+	This dumps Windows trusted certificates from the local machine's root & CA stores in a PEM format suitable for configuring trusted CAs for Linux commands.
+	An optional filter can restricted dumped certificates.
+	Otherwise, all certificates are dumped.
+.NOTES
+	Requires and for Windows.
+	Built-in certutil.exe must be available.
+.EXAMPLE
+	Export-CaCertificates | Out-File -FilePath ~\path\curl-ca-bundle.crt
+	Dump all trusted CA certificates from Windows Certificate store for local machine to a file.
+.EXAMPLE
+	Export-CaCertificates -filter { $_.Subject -match 'alpha|beta' }
+	Dump only certificates with subjects containing 'alpha' or 'beta'.
+#>
+function Export-CaCertificates {
+	[CmdletBinding()]
+	param (
+		# filter to select root & CA certificates
+		[Parameter()]
+		[scriptblock]
+		$filter = { $true }
+	)
+	$byteArray = [byte[]]::new(2)
+	[System.Random]::new().NextBytes($byteArray)
+	try {
+		$Destination = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine(
+				[System.IO.Path]::GetTempPath(),
+				'tmp{0}' -f (($byteArray | % { $_.ToString('x') }) -join '')
+			))
+		'root', 'ca' | % {
+			$dir = $Destination.CreateSubdirectory($_)
+			Get-ChildItem -Path Cert:\LocalMachine\$_\ | ? $filter | % {
+				$base = [System.IO.Path]::Combine($dir.FullName, $_.Thumbprint)
+				Export-Certificate -Cert $_ -FilePath "$base.der"
+				certutil.exe -encode "$base.der" "$base.crt"
+			} | Write-Verbose
+			Remove-Item -Path ([System.IO.Path]::Combine($dir, '*.der'))
+		}
+		Get-ChildItem -Path $Destination -Recurse -Filter *.crt | Get-Content
+	}
+ finally {
+		Remove-Item -Path $Destination -Recurse
+	}
+}
 # Export only the functions using PowerShell standard verb-noun naming.
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
 # This improves performance of command discovery in PowerShell.
-Export-ModuleMember -Function New-EKU,New-SelfSignedCertificate
+Export-ModuleMember -Function New-EKU,New-SelfSignedCertificate,Add-PathEntry,Export-CaCertificates
