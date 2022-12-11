@@ -1,13 +1,12 @@
 Set-StrictMode -Version latest
 # Implement your module commands in this script.
-function New-EKU {
 <#
 .SYNOPSIS
 	Create an X.509 Enhanced Key Usage extension.
 .DESCRIPTION
 	Create an X.509 Enhanced Key Usage extension from friendly names for OIDs in the pipeline.
 .EXAMPLE
-	PS C:\> (@'
+	(@'
 	Any Purpose
 	Client Authentication
 	Server Authentication
@@ -26,11 +25,12 @@ function New-EKU {
 	'@ -split "`n") | New-EKU -Critical
 	Creates a critical EKU extension containing all the named OIDs.
 #>
+function New-EKU {
 	[OutputType([System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension])]
 	[CmdletBinding()]
 	param (
 		# OID Friendly Names
-		[Parameter(ValueFromPipeline=$true)]
+		[Parameter(ValueFromPipeline = $true)]
 		[string[]]
 		$FriendlyName,
 
@@ -47,7 +47,7 @@ function New-EKU {
 		$FriendlyName | % {
 			($oid = [System.Security.Cryptography.Oid]::new()).FriendlyName = $_
 			[void]$oidCollection.Add($oid)
-			Write-Verbose -Message ('Added OID {0} ({1})' -f $oid.Value,$oid.FriendlyName)
+			Write-Verbose -Message ('Added OID {0} ({1})' -f $oid.Value, $oid.FriendlyName)
 		}
 	}
 
@@ -56,7 +56,7 @@ function New-EKU {
 	}
 }
 function New-SelfSignedCertificate {
-	[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium', HelpUri='https://go.microsoft.com/fwlink/?LinkId=386828')]
+	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium', HelpUri = 'https://go.microsoft.com/fwlink/?LinkId=386828')]
 	param(
 		[System.Security.AccessControl.FileSecurity]
 		${SecurityDescriptor},
@@ -191,15 +191,14 @@ function New-SelfSignedCertificate {
 		[Microsoft.CertificateServices.Commands.Certificate]
 		${Signer},
 
-		[Parameter(ValueFromPipeline=$true)]
+		[Parameter(ValueFromPipeline = $true)]
 		[Microsoft.CertificateServices.Commands.Certificate]
 		${CloneCert},
 
 		[string]
 		${CertStoreLocation})
 
-	begin
-	{
+	begin {
 		try {
 			# transfer DnsName to SANDNS
 			if ($PSBoundParameters.ContainsKey('DnsName')) {
@@ -213,21 +212,22 @@ function New-SelfSignedCertificate {
 			# sync matches into array for subsequent removal
 			# expand $_.value
 			$SAN = @($PSBoundParameters.GetEnumerator() `
-			         | ? { $_.key.StartsWith('SAN') }) `
-			     | % { [void]($PSBoundParameters.Remove($_.key))
-			           $token = $_.key.Substring(3) # 3 = 'SAN'.length
-			           $_.value } `
-			     | % { '{0}={1}' -f $token,$_ }
+				| ? { $_.key.StartsWith('SAN') }) `
+			| % { [void]($PSBoundParameters.Remove($_.key))
+				$token = $_.key.Substring(3) # 3 = 'SAN'.length
+				$_.value } `
+			| % { '{0}={1}' -f $token, $_ }
 			if ($null -ne $SAN) {
 				if (!$PSBoundParameters.ContainsKey('TextExtension')) {
 					$PSBoundParameters.TextExtension = [string[]]@()
 				}
 				if ($PSBoundParameters.ContainsKey('Subject')) {
 					$CriticalSAN = ''
-				} else {
+				}
+				else {
 					$CriticalSAN = '{critical}'
 				}
-				$PSBoundParameters.TextExtension += ,('2.5.29.17={0}{{text}}{1}' -f $CriticalSAN,($SAN -join '&'))
+				$PSBoundParameters.TextExtension += , ('2.5.29.17={0}{{text}}{1}' -f $CriticalSAN, ($SAN -join '&'))
 				Write-Information -MessageData ('Using TextExtension {0}' -f ($PSBoundParameters.TextExtension -join ','))
 			}
 			# convert EKU into Extension
@@ -235,38 +235,38 @@ function New-SelfSignedCertificate {
 				if (!$PSBoundParameters.ContainsKey('Extension')) {
 					$PSBoundParameters.Extension = [System.Security.Cryptography.X509Certificates.X509Extension[]]@()
 				}
-				$PSBoundParameters.Extension += ,(New-EKU -FriendlyName $EKU)
+				$PSBoundParameters.Extension += , (New-EKU -FriendlyName $EKU)
 				[void]$PSBoundParameters.Remove('EKU')
 				Write-Information -MessageData ('Using Extension{0}' -f ($PSBoundParameters.Extension | Out-String))
 			}
 			$outBuffer = $null
-			if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-			{
+			if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
 				$PSBoundParameters['OutBuffer'] = 1
 			}
 			$wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('pki\New-SelfSignedCertificate', [System.Management.Automation.CommandTypes]::Cmdlet)
-			$scriptCmd = {& $wrappedCmd @PSBoundParameters }
+			$scriptCmd = { & $wrappedCmd @PSBoundParameters }
 			$steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
 			$steppablePipeline.Begin($PSCmdlet)
-		} catch {
+		}
+		catch {
 			throw
 		}
 	}
 
-	process
-	{
+	process {
 		try {
 			$steppablePipeline.Process($_)
-		} catch {
+		}
+		catch {
 			throw
 		}
 	}
 
-	end
-	{
+	end {
 		try {
 			$steppablePipeline.End()
-		} catch {
+		}
+		catch {
 			throw
 		}
 	}
